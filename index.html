@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contract Interaction</title>
+    <script type="module" src="./ethers-5.6.esm.min.js"></script>
+  </head>
+  <body>
+    <h1>Contract Interaction</h1>
+    <button id="connectButton">Connect to MetaMask</button>
+    <button id="getBalanceButton">Get Contract Balance</button>
+    <button id="payButton">Pay to Contract</button>
+    <button id="withdrawButton">Withdraw from Contract</button>
+
+    <script type="module">
+      import { ethers } from "./ethers-5.6.esm.min.js";
+
+      // Define contract address and ABI
+      const contractAddress = "0x90193C961A926261B756D1E5bb255e67ff9498A1";
+      const contractABI = [
+        {
+          inputs: [],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          inputs: [],
+          name: "Maarten__NotOwner",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "MINIMUM_VALUE",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "pay",
+          outputs: [],
+          stateMutability: "payable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "withdraw",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ];
+
+      // Connect to MetaMask
+      async function connectToMetaMask() {
+        if (typeof window.ethereum !== "undefined") {
+          await window.ethereum.request({ method: "eth_requestAccounts" });
+          console.log("Connected to MetaMask");
+        } else {
+          console.log("MetaMask not available");
+        }
+      }
+
+      // Get contract balance
+      async function getContractBalance() {
+        if (typeof window.ethereum !== "undefined") {
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          try {
+            const balance = await provider.getBalance(contractAddress);
+            console.log(ethers.utils.formatEther(balance));
+          } catch (error) {
+            console.log(error);
+          }
+        } else {
+          console.log("Please install MetaMask");
+        }
+      }
+
+      // Pay to contract
+      async function payToContract() {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          signer
+        );
+
+        const valueToSend = ethers.utils.parseEther("0.01"); // Amount to send in ether
+        const transaction = await contract.pay({ value: valueToSend });
+        await transaction.wait();
+        console.log("Paid to contract");
+      }
+
+      // Withdraw from contract
+      async function withdrawFromContract() {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          signer
+        );
+
+        const transaction = await contract.withdraw();
+        await transaction.wait();
+        console.log("Withdrawn from contract");
+      }
+
+      // Attach click event listeners
+      document
+        .getElementById("connectButton")
+        .addEventListener("click", connectToMetaMask);
+
+      document
+        .getElementById("getBalanceButton")
+        .addEventListener("click", getContractBalance);
+      document
+        .getElementById("payButton")
+        .addEventListener("click", payToContract);
+      document
+        .getElementById("withdrawButton")
+        .addEventListener("click", withdrawFromContract);
+    </script>
+  </body>
+</html>

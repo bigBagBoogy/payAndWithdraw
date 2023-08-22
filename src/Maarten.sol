@@ -1,13 +1,12 @@
-// SPDX-License-Identifier: SEE LICENSE IN LICENSE
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
 contract Maarten {
-    // connect  --> JS with ethers
-    // pay
-    // getBalance
-    // withdraw
+    // connect  --> (JS with ethers)  --> pay  -->   getBalance (JS with ethers) --> withdraw
+    error Maarten__NotOwner();
 
-    address private immutable i_owner;
+    uint256 public constant MINIMUM_VALUE = 0.0025 ether;
+    address payable private immutable i_owner;
 
     modifier onlyOwner() {
         // require(msg.sender == i_owner);
@@ -16,6 +15,16 @@ contract Maarten {
     }
 
     constructor() {
-        i_owner = msg.sender;
+        i_owner = payable(msg.sender);
+    }
+
+    function pay() public payable {
+        require(msg.value >= MINIMUM_VALUE, "Amount is wrong");
+        payable(msg.sender).transfer(msg.value);
+    }
+
+    function withdraw() public onlyOwner {
+        uint256 contractBalance = address(this).balance;
+        i_owner.transfer(contractBalance);
     }
 }
